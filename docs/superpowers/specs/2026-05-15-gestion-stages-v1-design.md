@@ -75,9 +75,9 @@ L'etudiant peut:
 - postuler a une offre publiee par une entreprise
 - deposer sa propre proposition de stage
 
-La proposition etudiante part d'un formulaire leger. Si l'entreprise existe deja,
-l'etudiant doit la retrouver et la reutiliser. Sinon, il peut suggerer sa
-creation.
+La proposition etudiante utilise le meme formulaire detaille qu'une offre
+deposee par une entreprise. Si l'entreprise existe deja, l'etudiant doit la
+retrouver et la reutiliser. Sinon, il peut suggerer sa creation.
 
 ### Espace entreprise
 
@@ -184,12 +184,11 @@ Le parcours est:
 
 Le parcours est:
 
-1. l'etudiant remplit un formulaire leger
+1. l'etudiant remplit le meme formulaire detaille qu'une entreprise
 2. il rattache sa proposition a une entreprise existante si possible
 3. si l'entreprise n'existe pas, il suggere sa creation
-4. l'equipe pedagogique relit et complete si necessaire
-5. l'equipe pedagogique valide ou non
-6. si la proposition est validee, elle est consideree administrativement comme
+4. l'equipe pedagogique relit la proposition et la valide ou non
+5. si la proposition est validee, elle est consideree administrativement comme
    acceptable
 
 La V1 ne demande pas a l'etudiant de gerer un workflow complet avec l'entreprise
@@ -330,7 +329,8 @@ poser des objets et des roles stables, pas d'anticiper toute la V2.
 - un espace etudiant pour consulter, proposer et postuler
 - la consultation des entreprises par les etudiants, meme sans offre
 - import CSV comme mode initial de chargement des etudiants
-- formulaire leger pour les propositions initiees par les etudiants
+- meme formulaire detaille pour les offres entreprise et les propositions
+  initiees par les etudiants
 - prevention des doublons entreprise des la V1
 - email general obligatoire sur l'entreprise
 - au moins un contact entreprise obligatoire
