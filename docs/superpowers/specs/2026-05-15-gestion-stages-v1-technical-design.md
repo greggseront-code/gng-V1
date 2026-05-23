@@ -202,7 +202,7 @@ Backend:
 - `cors`
 - `multer`
 
-## Points Ouverts
+## Decisions Restant A Trancher
 
 - authentification V1
 - gestion des sessions ou liens de connexion
