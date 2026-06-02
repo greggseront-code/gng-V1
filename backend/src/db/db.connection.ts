@@ -25,3 +25,7 @@ export function createTestDb(): Database.Database {
   runMigrations(db);
   return db;
 }
+
+export function setDb(db: Database.Database): void {
+  _db = db;
+}

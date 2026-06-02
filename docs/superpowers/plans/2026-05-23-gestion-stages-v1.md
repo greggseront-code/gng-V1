@@ -100,11 +100,11 @@
 - Create: `backend/src/db/seeds/seed.sql`
 - Modify: `backend/src/app.ts`
 
-- [ ] Define the initial SQLite schema for users, students, companies, contacts, offers, applications, and offer status history.
-- [ ] Centralize the SQLite connection and database path handling.
-- [ ] Add startup migration execution so the schema is always present in development.
-- [ ] Add a database reset strategy usable by tests.
-- [ ] Confirm the backend can boot with an initialized database.
+- [x] Define the initial SQLite schema for users, students, companies, contacts, offers, applications, and offer status history.
+- [x] Centralize the SQLite connection and database path handling.
+- [x] Add startup migration execution so the schema is always present in development.
+- [x] Add a database reset strategy usable by tests.
+- [x] Confirm the backend can boot with an initialized database.
 - [ ] Commit.
 
 **Verification:**
@@ -129,12 +129,12 @@
 - Modify: `backend/src/app.ts`
 - Create: `backend/tests/companies.test.ts`
 
-- [ ] Implement company creation with required `general_email`.
-- [ ] Enforce that each company has at least one contact.
-- [ ] Persist company contacts and their roles.
-- [ ] Add company listing and search endpoints.
-- [ ] Add duplicate detection support through search and probable matches.
-- [ ] Validate payloads and map validation failures to HTTP 400 responses.
+- [x] Implement company creation with required `general_email`.
+- [x] Enforce that each company has at least one contact.
+- [x] Persist company contacts and their roles.
+- [x] Add company listing and search endpoints.
+- [x] Add duplicate detection support through search and probable matches.
+- [x] Validate payloads and map validation failures to HTTP 400 responses.
 - [ ] Commit.
 
 **Verification:**

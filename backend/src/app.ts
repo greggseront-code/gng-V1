@@ -1,11 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import { getDb } from './db/db.connection';
+import { companiesRouter } from './features/companies/companies.routes';
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/companies', companiesRouter);
 
 app.get('/api/health', (_req, res) => {
   const db = getDb();
