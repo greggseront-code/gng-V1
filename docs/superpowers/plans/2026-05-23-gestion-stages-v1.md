@@ -82,6 +82,13 @@
 - Run: `cd backend && npm test`
 - Run: `cd frontend && npm run build`
 
+**Human observables:**
+- Dans `backend/` : `npm run dev` démarre le serveur sur le port 3000
+- `curl http://localhost:3000/api/health` retourne `{"ok":true}`
+- Dans `frontend/` : `npm run dev` démarre Vite sur le port 5173
+- Ouvrir `http://localhost:5173` dans un navigateur affiche le titre de l'app sans erreur dans la console
+- L'arborescence du projet contient bien un dossier `backend/` et un dossier `frontend/` avec leur `package.json` respectif
+
 ---
 
 ### Task 2: Create The SQLite Foundation
@@ -103,6 +110,11 @@
 **Verification:**
 - Run: `cd backend && npm test`
 - Expected: backend tests can create and reset a database cleanly
+
+**Human observables:**
+- A `backend/data/gesta.db` file is created after starting the backend
+- The file disappears and is recreated cleanly when the backend restarts (schema always applied)
+- `curl http://localhost:3000/api/health` still works (no regression)
 
 ---
 
@@ -129,6 +141,12 @@
 - Run: `cd backend && npm test -- --run tests/companies.test.ts`
 - Expected: company creation, listing, validation, and duplicate search all pass
 
+**Human observables:**
+- `POST /api/companies` with a valid JSON body creates a company and returns it with an `id`
+- `GET /api/companies` returns the list of created companies
+- `POST /api/companies` without a contact returns a `400` with a readable error message
+- `GET /api/companies?search=acme` returns results that look like the searched company, and flags probable duplicates when the name is close to an existing one
+
 ---
 
 ### Task 4: Implement Students Import And Directory
@@ -152,6 +170,11 @@
 **Verification:**
 - Run: `cd backend && npm test -- --run tests/students-import.test.ts`
 - Expected: import succeeds and students can be listed afterwards
+
+**Human observables:**
+- Uploading a CSV file to `POST /api/students/import` returns a summary (e.g. `{"imported": 42}`)
+- `GET /api/students` lists the imported students with their names and identifiers
+- Uploading a malformed CSV returns a `400` with a message indicating which row failed
 
 ---
 
@@ -178,6 +201,13 @@
 - Run: `cd backend && npm test -- --run tests/offers.test.ts`
 - Expected: offer creation, validation, listing, and closure all pass
 
+**Human observables:**
+- `POST /api/offers` creates an offer in status `soumise`
+- `GET /api/offers` (admin view) lists all offers including non-visible ones
+- `POST /api/offers/:id/validate` moves the offer to `validee_et_visible`
+- `GET /api/offers` (student view, via a query param or role header) only returns `validee_et_visible` offers
+- `POST /api/offers/:id/mark-unavailable` moves the offer to `non_disponible` and it no longer appears in the student listing
+
 ---
 
 ### Task 6: Implement Applications And Candidate Selection
@@ -203,6 +233,12 @@
 - Run: `cd backend && npm test -- --run tests/applications.test.ts`
 - Expected: application submission and candidate selection both pass
 
+**Human observables:**
+- `POST /api/offers/:id/applications` (as a student) creates an application and returns it with an `id`
+- Submitting the same application twice returns a `409` conflict
+- `GET /api/offers/:id/applications` (as a company) lists the students who applied
+- `POST /api/offers/:id/select-candidate` (as a company) moves the offer to `prise` and the offer disappears from the open listing
+
 ---
 
 ### Task 7: Add Error Handling And Upload Plumbing
@@ -223,6 +259,11 @@
 **Verification:**
 - Run: `cd backend && npm test`
 - Expected: all backend tests still pass after middleware registration
+
+**Human observables:**
+- Hitting a non-existent route (e.g. `GET /api/nope`) returns a clean `404` JSON response instead of an HTML Express error page
+- Sending a malformed JSON body returns a `400` with a readable message listing the invalid fields
+- A file attached to an offer payload is saved in `backend/uploads/` and the offer record includes a reference to it
 
 ---
 
@@ -256,6 +297,14 @@
 - Run: `cd frontend && npm run dev`
 - Expected: navigation works and list pages render against the backend API
 
+**Human observables:**
+- Navigating to `http://localhost:5173` shows a home page with links to Companies and Offers
+- The Companies page lists companies fetched from the backend
+- The Offers page lists only `validee_et_visible` offers
+- Clicking an offer opens a details page with the full description and contact info
+- Offer status is shown as a readable badge (not a raw string)
+- Navigating to an unknown URL shows a clear "not found" message, not a blank page
+
 ---
 
 ### Task 9: Build Submission And Company Dashboard Flows
@@ -280,6 +329,12 @@
 - Run: `cd frontend && npm run dev`
 - Expected: company and student submission flows can reach the backend without runtime errors
 
+**Human observables:**
+- Filling and submitting the offer form as a company creates an offer and shows it in the company dashboard with status `soumise`
+- Filling and submitting the same form as a student (proposal flow) creates an offer linked to an existing company
+- The company dashboard shows the list of applicants for each of its offers
+- Clicking "Apply" as a student on a visible offer registers the application (confirmed by a success message or updated UI state)
+
 ---
 
 ### Task 10: Final Integration, Docs, And Manual Validation
@@ -300,15 +355,18 @@
 **Verification:**
 - Run: `cd backend && npm test`
 - Run: `cd frontend && npm run build`
+**Human observables:**
+- All manual checks from previous tasks work end-to-end without restarting servers
+- The README accurately describes how to run the app from scratch on a fresh machine
 - Manual checks:
   - company creation with contact
-  - student import
-  - offer submission
-  - offer validation
-  - student company directory access
-  - student application
-  - company candidate selection
-  - manager closure of unavailable offers
+  - student import via CSV
+  - offer submission by a company → appears in manager queue
+  - offer validation by a manager → appears in student listing
+  - student browsing companies without any active offer
+  - student applying to an offer → confirmed in company dashboard
+  - company selecting a candidate → offer moves to `prise`
+  - manager closing an offer as `non_disponible`
 
 ---
 
