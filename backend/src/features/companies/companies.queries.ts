@@ -47,6 +47,49 @@ export function findContactsByCompanyId(db: Database, companyId: number): Compan
   return rows.map((row) => ({ ...row, roles: JSON.parse(row.roles) }));
 }
 
+export function findCompanyById(db: Database, id: number): CompanyWithContacts | null {
+  const company = db.prepare('SELECT * FROM companies WHERE id = ?').get(id) as Company | undefined;
+  if (!company) return null;
+  return { ...company, contacts: findContactsByCompanyId(db, id) };
+}
+
+export function updateCompany(
+  db: Database,
+  id: number,
+  fields: { name?: string; general_email?: string; address?: string },
+): Company {
+  return db
+    .prepare(
+      `UPDATE companies
+       SET name          = COALESCE(@name, name),
+           general_email = COALESCE(@general_email, general_email),
+           address       = COALESCE(@address, address)
+       WHERE id = @id
+       RETURNING *`,
+    )
+    .get({ id, name: fields.name ?? null, general_email: fields.general_email ?? null, address: fields.address ?? null }) as Company;
+}
+
+export function findCompaniesWithDuplicateRisk(db: Database): Company[] {
+  const all = db.prepare('SELECT * FROM companies ORDER BY name').all() as Company[];
+  const atRisk = new Set<number>();
+  for (const company of all) {
+    const keywords = company.name
+      .split(/\s+/)
+      .map((w) => w.replace(/[^a-zA-ZÀ-ÿ0-9]/g, ''))
+      .filter((w) => w.length > 3);
+    if (keywords.length === 0) continue;
+    const matches = db
+      .prepare('SELECT id FROM companies WHERE LOWER(name) LIKE ? AND id != ?')
+      .all(`%${keywords[0].toLowerCase()}%`, company.id) as { id: number }[];
+    if (matches.length > 0) {
+      atRisk.add(company.id);
+      matches.forEach((m) => atRisk.add(m.id));
+    }
+  }
+  return all.filter((c) => atRisk.has(c.id));
+}
+
 export function findProbableDuplicates(db: Database, name: string, excludeId: number): Company[] {
   const keywords = name
     .split(/\s+/)

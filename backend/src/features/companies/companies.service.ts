@@ -1,11 +1,14 @@
 import { getDb } from '../../db/db.connection';
-import type { CompanyInput, CompanyWithContacts } from './companies.types';
+import type { Company, CompanyContact, CompanyInput, CompanyWithContacts, ContactInput } from './companies.types';
 import {
   insertCompany,
   insertContact,
   listCompanies,
   findProbableDuplicates,
   findContactsByCompanyId,
+  findCompanyById,
+  updateCompany,
+  findCompaniesWithDuplicateRisk,
 } from './companies.queries';
 
 export function createCompany(input: CompanyInput): CompanyWithContacts {
@@ -30,9 +33,20 @@ export function getCompanies(search?: string) {
 }
 
 export function getCompanyWithContacts(id: number): CompanyWithContacts | null {
-  const db = getDb();
-  const companies = listCompanies(db);
-  const company = companies.find((c) => c.id === id);
-  if (!company) return null;
-  return { ...company, contacts: findContactsByCompanyId(db, id) };
+  return findCompanyById(getDb(), id);
+}
+
+export function addContactToCompany(companyId: number, contact: ContactInput): CompanyContact {
+  return insertContact(getDb(), companyId, contact);
+}
+
+export function patchCompany(
+  id: number,
+  fields: { name?: string; general_email?: string; address?: string },
+): Company {
+  return updateCompany(getDb(), id, fields);
+}
+
+export function getCompaniesWithDuplicateRisk(): Company[] {
+  return findCompaniesWithDuplicateRisk(getDb());
 }

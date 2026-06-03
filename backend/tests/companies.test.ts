@@ -99,3 +99,70 @@ test('POST /api/companies signale les doublons probables', async () => {
   expect(res.body.probable_duplicates).toHaveLength(1);
   expect(res.body.probable_duplicates[0].name).toBe('Acme Corp');
 });
+
+test('GET /api/companies/:id retourne l\'entreprise avec ses contacts', async () => {
+  const created = (await request(app).post('/api/companies').send(validCompany)).body;
+
+  const res = await request(app).get(`/api/companies/${created.id}`);
+
+  expect(res.status).toBe(200);
+  expect(res.body.id).toBe(created.id);
+  expect(res.body.name).toBe('Acme Corp');
+  expect(res.body.contacts).toHaveLength(1);
+  expect(res.body.contacts[0].email).toBe('jean@acme.com');
+});
+
+test('GET /api/companies/:id avec un id inexistant retourne 404', async () => {
+  const res = await request(app).get('/api/companies/9999');
+  expect(res.status).toBe(404);
+});
+
+test('POST /api/companies/:id/contacts ajoute un contact et le retourne', async () => {
+  const created = (await request(app).post('/api/companies').send(validCompany)).body;
+
+  const res = await request(app)
+    .post(`/api/companies/${created.id}/contacts`)
+    .send({ first_name: 'Marie', last_name: 'Curie', email: 'marie@acme.com', roles: ['responsable_administratif'] });
+
+  expect(res.status).toBe(201);
+  expect(res.body.id).toBeDefined();
+  expect(res.body.company_id).toBe(created.id);
+  expect(res.body.roles).toEqual(['responsable_administratif']);
+});
+
+test('POST /api/companies/:id/contacts sans email retourne 400', async () => {
+  const created = (await request(app).post('/api/companies').send(validCompany)).body;
+
+  const res = await request(app)
+    .post(`/api/companies/${created.id}/contacts`)
+    .send({ first_name: 'Marie', last_name: 'Curie', roles: ['maitre_de_stage'] });
+
+  expect(res.status).toBe(400);
+});
+
+test('PATCH /api/companies/:id met à jour les champs de l\'entreprise', async () => {
+  const created = (await request(app).post('/api/companies').send(validCompany)).body;
+
+  const res = await request(app)
+    .patch(`/api/companies/${created.id}`)
+    .send({ name: 'Acme Corp Modifié', general_email: 'nouveau@acme.com' });
+
+  expect(res.status).toBe(200);
+  expect(res.body.name).toBe('Acme Corp Modifié');
+  expect(res.body.general_email).toBe('nouveau@acme.com');
+});
+
+test('GET /api/companies?duplicate_risk=true retourne les entreprises à risque de doublon', async () => {
+  await request(app).post('/api/companies').send(validCompany);
+  await request(app).post('/api/companies').send({ ...validCompany, name: 'Acme Corporation', general_email: 'corp@acme.com' });
+  await request(app).post('/api/companies').send({ ...validCompany, name: 'Beta Inc', general_email: 'beta@beta.com' });
+
+  const res = await request(app).get('/api/companies?duplicate_risk=true');
+
+  expect(res.status).toBe(200);
+  expect(res.body.length).toBeGreaterThanOrEqual(2);
+  const names = res.body.map((c: { name: string }) => c.name);
+  expect(names).toContain('Acme Corp');
+  expect(names).toContain('Acme Corporation');
+  expect(names).not.toContain('Beta Inc');
+});

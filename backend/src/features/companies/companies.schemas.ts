@@ -6,7 +6,7 @@ const ContactRoleSchema = z.enum([
   'encadrant_technique',
 ]);
 
-const ContactInputSchema = z.object({
+export const ContactInputSchema = z.object({
   first_name: z.string().min(1),
   last_name: z.string().min(1),
   email: z.string().email(),

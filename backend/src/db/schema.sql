@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS offers (
   remarks                 TEXT,
   attachment_path         TEXT,
   status                  TEXT    NOT NULL DEFAULT 'soumise'
-                            CHECK(status IN ('soumise', 'validee_et_visible', 'prise', 'non_disponible')),
+                            CHECK(status IN ('soumise', 'validee_et_visible', 'prise', 'non_disponible', 'refusee')),
   submitted_by_student_id INTEGER          REFERENCES students(id),
   created_at              TEXT    NOT NULL DEFAULT (datetime('now')),
   updated_at              TEXT    NOT NULL DEFAULT (datetime('now'))
