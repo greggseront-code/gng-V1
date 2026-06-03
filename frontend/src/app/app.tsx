@@ -5,6 +5,10 @@ import { AppLayout } from '../components/app-layout';
 import { HomePage } from '../pages/home.page';
 import { CompaniesPage } from '../pages/companies.page';
 import { OffersPage } from '../pages/offers.page';
+import { OfferDetailsPage } from '../pages/offer-details.page';
+import { SubmitOfferPage } from '../pages/submit-offer.page';
+import { StudentProposalPage } from '../pages/student-proposal.page';
+import { AdminOffersPage } from '../pages/admin-offers.page';
 import { AdminCompanyFormPage } from '../pages/admin-company-form.page';
 import { AdminCompanyDetailPage } from '../pages/admin-company-detail.page';
 import { RoleSelectPage } from '../pages/role-select.page';
@@ -38,6 +42,11 @@ function AppRoutes() {
         <Route index element={<HomePage />} />
         <Route path="companies" element={<CompaniesPage />} />
         <Route path="offers" element={<OffersPage />} />
+        <Route path="offers/new" element={<RequireWrite><SubmitOfferPage /></RequireWrite>} />
+        <Route path="offers/proposal" element={<RequireWrite><StudentProposalPage /></RequireWrite>} />
+        <Route path="offers/:id/edit" element={<RequireWrite><SubmitOfferPage /></RequireWrite>} />
+        <Route path="offers/:id" element={<OfferDetailsPage />} />
+        <Route path="admin/offers" element={<AdminOffersPage />} />
         <Route path="admin/companies/new" element={<RequireWrite><AdminCompanyFormPage /></RequireWrite>} />
         <Route path="admin/companies/:id" element={<AdminCompanyDetailPage />} />
         <Route path="admin/students" element={<StudentsPage />} />

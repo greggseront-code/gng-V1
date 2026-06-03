@@ -252,7 +252,7 @@ suivants:
 - recherche obligatoire avant creation d'une entreprise
 - affichage de correspondances probables lorsque le nom saisi ressemble a une
   entreprise existante
-- capacite pour l'equipe pedagogique de corriger la reference choisie
+- capacite pour l'equipe pedagogique de corriger la reference entreprise choisie, uniquement pour les propositions deposees par un etudiant
 
 La fusion avancee de doublons peut etre reportee a un plan technique minimal si
 necessaire, mais la prevention des doublons doit etre presente des la V1.
