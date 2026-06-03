@@ -372,17 +372,17 @@ La spec dit "chaque utilisateur se connecte à la même application, puis accèd
 - Modify: `backend/src/app.ts`
 - Create: `backend/tests/offers.test.ts`
 
-- [ ] Installer `multer` et `@types/multer` dans `backend/package.json` et créer `backend/src/middlewares/upload.middleware.ts` : `dest: backend/uploads/`, types autorisés PDF et DOCX, taille max 5 Mo, 400 explicite si violation. Créer le dossier `uploads/` si absent. (Ceci est fait ici car l'endpoint d'upload est implémenté dans cette tâche ; Task 11 n'ajoutera plus que les handlers d'erreur et not-found.)
-- [ ] Écrire les tests couvrant : création d'une offre (statut `soumise`), listing admin (toutes les offres), listing étudiant (uniquement `validee_et_visible` plus ses propres propositions), filtrage étudiant par mot-clé (`?search=`), validation (`POST /:id/validate`), refus (`POST /:id/reject`), clôture (`POST /:id/mark-unavailable`), modification (`PATCH /:id`), correction de l'entreprise (`PATCH /:id/company`), upload de pièce jointe (`POST /:id/attachment`), création sans `priority_contact_id` (400).
-- [ ] Run le test et confirmer qu'il échoue.
-- [ ] Définir `OfferStatus` et `Offer` avec tous les champs du schéma.
-- [ ] Étendre le schéma SQL des offres avec les champs `submitted_by_student_id` (nullable), `created_by_company_id` (nullable) et `source_type` (`company` | `student`) afin de distinguer les propositions étudiantes des offres créées par entreprise sans complexifier le workflow de statuts.
-- [ ] Valider avec Zod : `company_id`, `priority_contact_id`, `contact_ids` (min 1), `description`, `remote_allowed`; si `remote_allowed` est true alors `remote_percentage` est requis. Valider le format du téléphone dans `ContactInputSchema` : si renseigné, doit correspondre à un format E.164 ou local acceptable (regex simple).
-- [ ] Ajouter le statut `refusee` à `OfferStatus`. Note : la spec liste quatre statuts minimaux et ne définit pas `refusee` explicitement, mais mentionne que le gestionnaire "valide ou refuse" une offre. Ce statut est une extension assumée qui couvre ce besoin réel. Une offre `refusee` reste visible à son auteur et à l'équipe pédagogique, mais jamais dans le catalogue étudiant.
-- [ ] Implémenter les queries : `insertOffer`, `linkOfferContacts` (table `offer_contacts`), `listOffers(scope, search?)` (filtre LIKE sur description, technologies, location si `search` est fourni, avec visibilité dépendante du rôle et de l'auteur), `findOfferById`, `updateOfferStatus` (écrit aussi dans `offer_status_history`), `updateOffer` (modifie les champs éditables d'une offre soumise), `updateOfferCompany` (change le `company_id`).
-- [ ] Exposer : `POST /api/offers`, `GET /api/offers` (scopé par rôle via `req.auth`, plus `?search=`), `GET /api/offers/:id`, `POST /api/offers/:id/validate`, `POST /api/offers/:id/reject`, `POST /api/offers/:id/mark-unavailable`, `PATCH /api/offers/:id` (modification des champs d'une offre), `PATCH /api/offers/:id/company` (corps `{ company_id }` pour corriger la référence), `POST /api/offers/:id/attachment` (upload multer, enregistre `attachment_path`).
-- [ ] Brancher dans `app.ts` sous `/api/offers`. L'endpoint d'upload utilise `upload.single('file')` depuis le middleware créé en début de cette tâche.
-- [ ] Protéger les routes offers avec les helpers de `authorization.middleware.ts` (créés en Task 4c) selon la matrice suivante :
+- [x] Installer `multer` et `@types/multer` dans `backend/package.json` et créer `backend/src/middlewares/upload.middleware.ts` : `dest: backend/uploads/`, types autorisés PDF et DOCX, taille max 5 Mo, 400 explicite si violation. Créer le dossier `uploads/` si absent. (Ceci est fait ici car l'endpoint d'upload est implémenté dans cette tâche ; Task 11 n'ajoutera plus que les handlers d'erreur et not-found.)
+- [x] Écrire les tests couvrant : création d'une offre (statut `soumise`), listing admin (toutes les offres), listing étudiant (uniquement `validee_et_visible` plus ses propres propositions), filtrage étudiant par mot-clé (`?search=`), validation (`POST /:id/validate`), refus (`POST /:id/reject`), clôture (`POST /:id/mark-unavailable`), modification (`PATCH /:id`), correction de l'entreprise (`PATCH /:id/company`), upload de pièce jointe (`POST /:id/attachment`), création sans `priority_contact_id` (400).
+- [x] Run le test et confirmer qu'il échoue.
+- [x] Définir `OfferStatus` et `Offer` avec tous les champs du schéma.
+- [x] Étendre le schéma SQL des offres avec les champs `submitted_by_student_id` (nullable), `created_by_company_id` (nullable) et `source_type` (`company` | `student`) afin de distinguer les propositions étudiantes des offres créées par entreprise sans complexifier le workflow de statuts.
+- [x] Valider avec Zod : `company_id`, `priority_contact_id`, `contact_ids` (min 1), `description`, `remote_allowed`; si `remote_allowed` est true alors `remote_percentage` est requis. Valider le format du téléphone dans `ContactInputSchema` : si renseigné, doit correspondre à un format E.164 ou local acceptable (regex simple).
+- [x] Ajouter le statut `refusee` à `OfferStatus`. Note : la spec liste quatre statuts minimaux et ne définit pas `refusee` explicitement, mais mentionne que le gestionnaire "valide ou refuse" une offre. Ce statut est une extension assumée qui couvre ce besoin réel. Une offre `refusee` reste visible à son auteur et à l'équipe pédagogique, mais jamais dans le catalogue étudiant.
+- [x] Implémenter les queries : `insertOffer`, `linkOfferContacts` (table `offer_contacts`), `listOffers(scope, search?)` (filtre LIKE sur description, technologies, location si `search` est fourni, avec visibilité dépendante du rôle et de l'auteur), `findOfferById`, `updateOfferStatus` (écrit aussi dans `offer_status_history`), `updateOffer` (modifie les champs éditables d'une offre soumise), `updateOfferCompany` (change le `company_id`).
+- [x] Exposer : `POST /api/offers`, `GET /api/offers` (scopé par rôle via `req.auth`, plus `?search=`), `GET /api/offers/:id`, `POST /api/offers/:id/validate`, `POST /api/offers/:id/reject`, `POST /api/offers/:id/mark-unavailable`, `PATCH /api/offers/:id` (modification des champs d'une offre), `PATCH /api/offers/:id/company` (corps `{ company_id }` pour corriger la référence), `POST /api/offers/:id/attachment` (upload multer, enregistre `attachment_path`).
+- [x] Brancher dans `app.ts` sous `/api/offers`. L'endpoint d'upload utilise `upload.single('file')` depuis le middleware créé en début de cette tâche.
+- [x] Protéger les routes offers avec les helpers de `authorization.middleware.ts` (créés en Task 4c) selon la matrice suivante :
   - `POST /api/offers` : `gestionnaire`, `entreprise`, `etudiant` — la spec couvre les propositions étudiantes avec le même formulaire
   - `GET /api/offers` : public pour les offres `validee_et_visible` ; `gestionnaire` et `lecteur` voient tout ; `etudiant` voit les offres visibles + ses propres propositions ; `entreprise` voit ses propres offres
   - `GET /api/offers/:id` : même règle que la liste
@@ -390,9 +390,9 @@ La spec dit "chaque utilisateur se connecte à la même application, puis accèd
   - `PATCH /api/offers/:id` : `gestionnaire` (tous), `entreprise` (ses propres offres), `etudiant` (ses propres propositions)
   - `POST /api/offers/:id/attachment` : `gestionnaire`, `entreprise` (propres offres), `etudiant` (propres propositions)
   - `lecteur` : lecture seule, 403 sur toute écriture
-- [ ] Ajouter dans `access-control.test.ts` : `etudiant` peut créer une offre (proposal) ; `lecteur` reçoit 403 sur POST /api/offers ; `entreprise` ne peut pas valider une offre.
-- [ ] Run: `cd backend && npm test -- --run tests/offers.test.ts` — tous les tests PASS.
-- [ ] Run: `cd backend && npm test` — aucune régression.
+- [x] Ajouter dans `access-control.test.ts` : `etudiant` peut créer une offre (proposal) ; `lecteur` reçoit 403 sur POST /api/offers ; `entreprise` ne peut pas valider une offre.
+- [x] Run: `cd backend && npm test -- --run tests/offers.test.ts` — tous les tests PASS.
+- [x] Run: `cd backend && npm test` — aucune régression.
 - [ ] Commit.
 
 **Verification:**

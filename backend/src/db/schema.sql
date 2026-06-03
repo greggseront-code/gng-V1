@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS offers (
   status                  TEXT    NOT NULL DEFAULT 'soumise'
                             CHECK(status IN ('soumise', 'validee_et_visible', 'prise', 'non_disponible', 'refusee')),
   submitted_by_student_id INTEGER          REFERENCES students(id),
+  created_by_company_id   INTEGER          REFERENCES companies(id),
+  source_type             TEXT             CHECK(source_type IN ('company', 'student')),
   created_at              TEXT    NOT NULL DEFAULT (datetime('now')),
   updated_at              TEXT    NOT NULL DEFAULT (datetime('now'))
 );
