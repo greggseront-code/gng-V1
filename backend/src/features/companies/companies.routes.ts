@@ -9,18 +9,11 @@ import {
   patchCompany,
   getCompaniesWithDuplicateRisk,
 } from './companies.service';
+import { requireRole, requireEntityOwnership } from '../../middlewares/authorization.middleware';
 
 export const companiesRouter = Router();
 
-companiesRouter.post('/', (req, res) => {
-  const result = CompanyInputSchema.safeParse(req.body);
-  if (!result.success) {
-    res.status(400).json({ error: result.error.flatten() });
-    return;
-  }
-  res.status(201).json(createCompany(result.data));
-});
-
+// GET / — public (needed for role-select page and student reference)
 companiesRouter.get('/', (req, res) => {
   if (req.query.duplicate_risk === 'true') {
     res.json(getCompaniesWithDuplicateRisk());
@@ -30,34 +23,66 @@ companiesRouter.get('/', (req, res) => {
   res.json(getCompanies(search));
 });
 
-companiesRouter.get('/:id', (req, res) => {
-  const company = getCompanyWithContacts(Number(req.params.id));
-  if (!company) {
-    res.status(404).json({ error: 'Entreprise non trouvée' });
-    return;
-  }
-  res.json(company);
-});
+// GET /:id — all authenticated roles; entreprise restricted to own company
+companiesRouter.get(
+  '/:id',
+  requireRole('gestionnaire', 'lecteur', 'etudiant', 'entreprise'),
+  requireEntityOwnership('id'),
+  (req, res) => {
+    const company = getCompanyWithContacts(Number(req.params.id));
+    if (!company) {
+      res.status(404).json({ error: 'Entreprise non trouvée' });
+      return;
+    }
+    res.json(company);
+  },
+);
 
-companiesRouter.patch('/:id', (req, res) => {
-  const schema = z.object({
-    name: z.string().min(1).optional(),
-    general_email: z.string().email().optional(),
-    address: z.string().optional(),
-  });
-  const result = schema.safeParse(req.body);
-  if (!result.success) {
-    res.status(400).json({ error: result.error.flatten() });
-    return;
-  }
-  res.json(patchCompany(Number(req.params.id), result.data));
-});
+// POST / — gestionnaire, etudiant, entreprise (not lecteur)
+companiesRouter.post(
+  '/',
+  requireRole('gestionnaire', 'etudiant', 'entreprise'),
+  (req, res) => {
+    const result = CompanyInputSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: result.error.flatten() });
+      return;
+    }
+    res.status(201).json(createCompany(result.data));
+  },
+);
 
-companiesRouter.post('/:id/contacts', (req, res) => {
-  const result = ContactInputSchema.safeParse(req.body);
-  if (!result.success) {
-    res.status(400).json({ error: result.error.flatten() });
-    return;
-  }
-  res.status(201).json(addContactToCompany(Number(req.params.id), result.data));
-});
+// PATCH /:id — gestionnaire (all), entreprise (own company only)
+companiesRouter.patch(
+  '/:id',
+  requireRole('gestionnaire', 'entreprise'),
+  requireEntityOwnership('id'),
+  (req, res) => {
+    const schema = z.object({
+      name: z.string().min(1).optional(),
+      general_email: z.string().email().optional(),
+      address: z.string().optional(),
+    });
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: result.error.flatten() });
+      return;
+    }
+    res.json(patchCompany(Number(req.params.id), result.data));
+  },
+);
+
+// POST /:id/contacts — gestionnaire (all), entreprise (own company only)
+companiesRouter.post(
+  '/:id/contacts',
+  requireRole('gestionnaire', 'entreprise'),
+  requireEntityOwnership('id'),
+  (req, res) => {
+    const result = ContactInputSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: result.error.flatten() });
+      return;
+    }
+    res.status(201).json(addContactToCompany(Number(req.params.id), result.data));
+  },
+);

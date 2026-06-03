@@ -1,12 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import { getDb } from './db/db.connection';
+import { authContextMiddleware } from './middlewares/auth-context.middleware';
 import { companiesRouter } from './features/companies/companies.routes';
 
 export const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(authContextMiddleware);
 
 app.use('/api/companies', companiesRouter);
 

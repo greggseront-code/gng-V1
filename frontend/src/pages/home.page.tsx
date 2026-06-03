@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useRole } from '../context/role-context';
 
 export function HomePage() {
+  const { role } = useRole();
+  const canCreate = role === 'gestionnaire' || role === 'etudiant' || role === 'entreprise';
+
   return (
     <div>
       <div className="page-header">
@@ -20,11 +24,13 @@ export function HomePage() {
           <div className="dashboard-card-title">Offres de stage</div>
           <div className="dashboard-card-desc">Parcourir les offres de stage disponibles.</div>
         </Link>
-        <Link to="/admin/companies/new" className="dashboard-card">
-          <div className="dashboard-card-icon">➕</div>
-          <div className="dashboard-card-title">Nouvelle entreprise</div>
-          <div className="dashboard-card-desc">Ajouter une entreprise et ses contacts au répertoire.</div>
-        </Link>
+        {canCreate && (
+          <Link to="/admin/companies/new" className="dashboard-card">
+            <div className="dashboard-card-icon">➕</div>
+            <div className="dashboard-card-title">Nouvelle entreprise</div>
+            <div className="dashboard-card-desc">Ajouter une entreprise et ses contacts au répertoire.</div>
+          </Link>
+        )}
       </div>
     </div>
   );

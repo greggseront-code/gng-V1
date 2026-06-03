@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { listCompanies } from '../features/companies/companies.api';
 import type { Company } from '../features/companies/companies.types';
+import { useRole } from '../context/role-context';
 
 export function CompaniesPage() {
+  const { role } = useRole();
+  const canCreate = role === 'gestionnaire' || role === 'etudiant' || role === 'entreprise';
   const [companies, setCompanies] = useState<Company[]>([]);
   const [search, setSearch] = useState('');
 
@@ -15,7 +18,7 @@ export function CompaniesPage() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Entreprises</h1>
-        <Link to="/admin/companies/new" className="btn btn-primary">+ Nouvelle entreprise</Link>
+        {canCreate && <Link to="/admin/companies/new" className="btn btn-primary">+ Nouvelle entreprise</Link>}
       </div>
       <div className="card">
         <div className="card-header">
