@@ -229,19 +229,19 @@ La V1 utilise un sélecteur de rôle côté frontend, mais la cohérence avec la
 
 Task 4c crée uniquement le middleware et protège les routes companies (déjà existantes). La protection des routes offers, applications et students est ajoutée au fur et à mesure dans les Tasks 7, 9, 5 respectivement, en utilisant les helpers définis ici.
 
-- [ ] Écrire `auth-context.middleware.ts` : lit `x-role` (`gestionnaire`, `lecteur`, `etudiant`, `entreprise`) et `x-entity-id` depuis les headers et les expose sur `req.auth`. En l'absence de header, le backend se comporte comme non authentifié (accès refusé sur les routes protégées).
-- [ ] Écrire `authorization.middleware.ts` avec les helpers `requireRole(...)`, `requireAnyRole(...)`, `requireEntityOwnership(entityField)`, `requireReadOnly()`.
-- [ ] Brancher `auth-context.middleware.ts` globalement dans `app.ts` avant les routes.
-- [ ] Protéger les routes companies selon la matrice suivante :
+- [x] Écrire `auth-context.middleware.ts` : lit `x-role` (`gestionnaire`, `lecteur`, `etudiant`, `entreprise`) et `x-entity-id` depuis les headers et les expose sur `req.auth`. En l'absence de header, le backend se comporte comme non authentifié (accès refusé sur les routes protégées).
+- [x] Écrire `authorization.middleware.ts` avec les helpers `requireRole(...)`, `requireAnyRole(...)`, `requireEntityOwnership(entityField)`, `requireReadOnly()`.
+- [x] Brancher `auth-context.middleware.ts` globalement dans `app.ts` avant les routes.
+- [x] Protéger les routes companies selon la matrice suivante :
   - `GET /api/companies` (liste) : public sans auth — nécessaire pour la page de sélection de rôle et le référentiel étudiant
   - `GET /api/companies/:id` (fiche détail) : `gestionnaire`, `lecteur`, `etudiant` (accès libre) ; `entreprise` uniquement si `company_id == x-entity-id` (403 sinon) — conforme à la spec "les entreprises ne voient que leurs propres données"
   - `POST /api/companies` : `gestionnaire`, `etudiant` (suggestion), `entreprise` (création propre profil)
   - `POST /api/companies/:id/contacts` et `PATCH /api/companies/:id` : `gestionnaire` (tous), `entreprise` (uniquement sa propre entreprise via `x-entity-id`)
   - `lecteur` : 403 sur toute écriture
-- [ ] Modifier `api-client.ts` pour envoyer `x-role` et `x-entity-id` issus du `role-context` dans chaque requête.
-- [ ] Écrire `backend/tests/access-control.test.ts` : `lecteur` reçoit 403 sur POST/PATCH companies ; `etudiant` peut appeler POST /api/companies ; `entreprise` peut modifier sa propre fiche mais pas celle d'une autre (403) ; `gestionnaire` peut tout faire.
-- [ ] Run: `cd backend && npm test -- --run tests/access-control.test.ts` — tous les tests PASS.
-- [ ] Run: `cd backend && npm test` — aucune régression.
+- [x] Modifier `api-client.ts` pour envoyer `x-role` et `x-entity-id` issus du `role-context` dans chaque requête.
+- [x] Écrire `backend/tests/access-control.test.ts` : `lecteur` reçoit 403 sur POST/PATCH companies ; `etudiant` peut appeler POST /api/companies ; `entreprise` peut modifier sa propre fiche mais pas celle d'une autre (403) ; `gestionnaire` peut tout faire.
+- [x] Run: `cd backend && npm test -- --run tests/access-control.test.ts` — tous les tests PASS.
+- [x] Run: `cd backend && npm test` — aucune régression.
 - [ ] Compléter les tests d'accès dans Tasks 5, 7, 9 pour les routes correspondantes.
 - [ ] Commit.
 
@@ -253,6 +253,42 @@ Task 4c crée uniquement le middleware et protège les routes companies (déjà 
 - Une entreprise ne peut pas charger la fiche détaillée d'une autre entreprise
 - Un étudiant ne voit pas les offres `soumise` des autres auteurs
 - Le frontend continue à fonctionner avec le rôle sélectionné sans saisie manuelle d'identité dans les formulaires
+
+---
+
+### Task 4b: Role Selection
+
+La spec dit "chaque utilisateur se connecte à la même application, puis accède à un espace adapté à son rôle." Cette tâche implémente un sélecteur de rôle sans mot de passe : l'utilisateur choisit son rôle, et pour les rôles étudiant et entreprise, il s'identifie en sélectionnant son nom ou sa société dans une liste. Implémentée avant Task 5 avec un fallback gracieux pour la liste des étudiants (vide tant que Task 5 n'est pas faite).
+
+**Files:**
+- Create: `frontend/src/context/role-context.tsx`
+- Create: `frontend/src/pages/role-select.page.tsx`
+- Modify: `frontend/src/app/app.tsx`
+- Modify: `frontend/src/components/app-layout.tsx`
+
+- [x] Écrire `role-context.tsx` : contexte React exposant `role` (`'gestionnaire' | 'lecteur' | 'etudiant' | 'entreprise' | null`), `entityId` (student_id ou company_id selon le rôle, ou null), `setRole(role, entityId?)` et `clearRole()`. La valeur est initialisée depuis localStorage et persistée à chaque changement.
+- [x] Écrire `RoleSelectPage` : affiche quatre boutons (Gestionnaire, Lecteur, Étudiant, Entreprise). Cliquer sur Gestionnaire ou Lecteur enregistre le rôle directement et redirige vers `/`. Cliquer sur Étudiant affiche un champ de recherche filtrant la liste des étudiants via `GET /api/students` ; sélectionner un étudiant enregistre le rôle `etudiant` avec son `id` comme `entityId`. Cliquer sur Entreprise affiche un champ de recherche filtrant la liste des entreprises ; sélectionner une entreprise enregistre le rôle `entreprise` avec son `id` comme `entityId`.
+- [x] Modifier `app.tsx` : envelopper l'arbre dans `<RoleProvider>`; si `role` est null, rediriger toutes les routes vers `/select-role` ; ajouter la route `/select-role` pointant vers `RoleSelectPage`. Ajouter `RequireWrite` pour bloquer l'accès direct aux routes d'écriture pour `lecteur`.
+- [x] Modifier `AppLayout` : afficher les liens de navigation conditionnellement selon le rôle. Gestionnaire : toutes les sections admin + entreprises + offres. Lecteur : entreprises, offres (lecture seule). Étudiant : entreprises, offres. Entreprise : répertoire, offres. Tous les rôles : un bouton "Changer de rôle" qui appelle `clearRole()` et redirige vers `/select-role`.
+- [x] Run: `cd frontend && npm run build` — pas d'erreur TypeScript.
+- [x] Vérifier dans le navigateur : au premier chargement, redirection vers `/select-role` ; après sélection d'un rôle, navigation adaptée visible ; après rafraîchissement, le rôle est conservé.
+- [ ] Commit.
+
+**Verification:**
+- Run: `cd frontend && npm run build`
+
+**Human observables:**
+- Au premier chargement, `http://localhost:5173` redirige vers `/select-role`
+- Choisir "Gestionnaire" affiche les liens admin dans la nav
+- Choisir "Étudiant" demande de se sélectionner dans la liste des étudiants importés (vide jusqu'à Task 5), puis affiche la nav étudiant
+- Choisir "Entreprise" demande de sélectionner sa société, puis affiche la nav entreprise
+- Après rafraîchissement de la page, le rôle et l'identité sont conservés
+- Le bouton "Changer de rôle" ramène à la page de sélection
+- Le rôle `lecteur` ne voit pas le bouton "+ Nouvelle entreprise" et ne peut pas accéder à `/admin/companies/new` directement
+
+**Note d'impact sur les tâches suivantes :**
+- Task 8 (offres frontend) : `SubmitOfferPage` utilise le `entityId` du contexte comme `company_id` ; `StudentProposalPage` utilise le `entityId` comme `student_id`
+- Task 10 (applications frontend) : le bouton "Postuler" utilise `entityId` du contexte ; `CompanyDashboardPage` filtre par `entityId`
 
 ---
 
@@ -323,41 +359,6 @@ Task 4c crée uniquement le middleware et protège les routes companies (déjà 
 - Sélectionner un CSV valide affiche "N étudiant(s) importé(s)."
 - Un CSV malformé affiche un message d'erreur rouge
 - `http://localhost:5173/admin/students` liste les étudiants importés
-
----
-
-### Task 4b: Role Selection
-
-La spec dit "chaque utilisateur se connecte à la même application, puis accède à un espace adapté à son rôle." Cette tâche implémente un sélecteur de rôle sans mot de passe : l'utilisateur choisit son rôle, et pour les rôles étudiant et entreprise, il s'identifie en sélectionnant son nom ou sa société dans une liste. Elle est placée ici — après Task 6 — car `GET /api/students` est nécessaire pour lister les étudiants lors de la sélection de rôle.
-
-**Files:**
-- Create: `frontend/src/context/role-context.tsx`
-- Create: `frontend/src/pages/role-select.page.tsx`
-- Modify: `frontend/src/app/app.tsx`
-- Modify: `frontend/src/components/app-layout.tsx`
-
-- [ ] Écrire `role-context.tsx` : contexte React exposant `role` (`'gestionnaire' | 'lecteur' | 'etudiant' | 'entreprise' | null`), `entityId` (student_id ou company_id selon le rôle, ou null), `setRole(role, entityId?)` et `clearRole()`. La valeur est initialisée depuis localStorage et persistée à chaque changement.
-- [ ] Écrire `RoleSelectPage` : affiche quatre boutons (Gestionnaire, Lecteur, Étudiant, Entreprise). Cliquer sur Gestionnaire ou Lecteur enregistre le rôle directement et redirige vers `/`. Cliquer sur Étudiant affiche un champ de recherche filtrant la liste des étudiants via `GET /api/students` ; sélectionner un étudiant enregistre le rôle `etudiant` avec son `id` comme `entityId`. Cliquer sur Entreprise affiche un champ de recherche filtrant la liste des entreprises ; sélectionner une entreprise enregistre le rôle `entreprise` avec son `id` comme `entityId`.
-- [ ] Modifier `app.tsx` : envelopper l'arbre dans `<RoleProvider>`; si `role` est null, rediriger toutes les routes vers `/select-role` ; ajouter la route `/select-role` pointant vers `RoleSelectPage`.
-- [ ] Modifier `AppLayout` : afficher les liens de navigation conditionnellement selon le rôle. Gestionnaire : toutes les sections admin + entreprises + offres. Lecteur : entreprises, offres, étudiants (lecture seule). Étudiant : entreprises, offres (vue étudiant), dépôt de proposition, mes candidatures. Entreprise : dashboard entreprise, dépôt d'offre. Tous les rôles : un bouton "Changer de rôle" qui appelle `clearRole()` et redirige vers `/select-role`.
-- [ ] Run: `cd frontend && npm run build` — pas d'erreur TypeScript.
-- [ ] Vérifier dans le navigateur : au premier chargement, redirection vers `/select-role` ; après sélection d'un rôle, navigation adaptée visible ; après rafraîchissement, le rôle est conservé.
-- [ ] Commit.
-
-**Verification:**
-- Run: `cd frontend && npm run build`
-
-**Human observables:**
-- Au premier chargement, `http://localhost:5173` redirige vers `/select-role`
-- Choisir "Gestionnaire" affiche les liens admin dans la nav
-- Choisir "Étudiant" demande de se sélectionner dans la liste des étudiants importés, puis affiche la nav étudiant
-- Choisir "Entreprise" demande de sélectionner sa société, puis affiche la nav entreprise
-- Après rafraîchissement de la page, le rôle et l'identité sont conservés
-- Le bouton "Changer de rôle" ramène à la page de sélection
-
-**Note d'impact sur les tâches suivantes :**
-- Task 8 (offres frontend) : `SubmitOfferPage` utilise le `entityId` du contexte comme `company_id` ; `StudentProposalPage` utilise le `entityId` comme `student_id`
-- Task 10 (applications frontend) : le bouton "Postuler" utilise `entityId` du contexte ; `CompanyDashboardPage` filtre par `entityId`
 
 ---
 
