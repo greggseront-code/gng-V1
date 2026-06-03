@@ -7,11 +7,13 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS students (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  first_name    TEXT    NOT NULL,
-  last_name     TEXT    NOT NULL,
-  email         TEXT    NOT NULL UNIQUE,
-  created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  matricule      TEXT    UNIQUE,
+  first_name     TEXT    NOT NULL,
+  last_name      TEXT    NOT NULL,
+  email          TEXT    NOT NULL UNIQUE,
+  date_naissance TEXT,
+  created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS companies (

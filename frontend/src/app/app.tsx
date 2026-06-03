@@ -8,6 +8,8 @@ import { OffersPage } from '../pages/offers.page';
 import { AdminCompanyFormPage } from '../pages/admin-company-form.page';
 import { AdminCompanyDetailPage } from '../pages/admin-company-detail.page';
 import { RoleSelectPage } from '../pages/role-select.page';
+import { StudentsPage } from '../pages/students.page';
+import { StudentsImportPage } from '../pages/students-import.page';
 
 function RoleGate({ children }: { children: ReactNode }) {
   const { role } = useRole();
@@ -38,6 +40,8 @@ function AppRoutes() {
         <Route path="offers" element={<OffersPage />} />
         <Route path="admin/companies/new" element={<RequireWrite><AdminCompanyFormPage /></RequireWrite>} />
         <Route path="admin/companies/:id" element={<AdminCompanyDetailPage />} />
+        <Route path="admin/students" element={<StudentsPage />} />
+        <Route path="admin/students/import" element={<RequireWrite><StudentsImportPage /></RequireWrite>} />
         <Route path="*" element={<p>Page non trouvée.</p>} />
       </Route>
     </Routes>

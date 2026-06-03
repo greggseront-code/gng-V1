@@ -1,0 +1,25 @@
+import { Router } from 'express';
+import { requireRole } from '../../middlewares/authorization.middleware';
+import { importStudents, listStudents } from './students.service';
+import { StudentsImportSchema } from './students.schemas';
+
+export const studentsRouter = Router();
+
+// GET /api/students — public (needed for role-select page)
+studentsRouter.get('/', (_req, res) => {
+  res.json(listStudents());
+});
+
+// POST /api/students/import — gestionnaire only
+studentsRouter.post(
+  '/import',
+  requireRole('gestionnaire'),
+  (req, res) => {
+    const result = StudentsImportSchema.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: result.error.flatten() });
+      return;
+    }
+    res.json({ imported: importStudents(result.data) });
+  },
+);

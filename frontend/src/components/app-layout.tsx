@@ -44,6 +44,16 @@ export function AppLayout() {
             </div>
           )}
 
+          {(role === 'gestionnaire' || role === 'lecteur') && (
+            <div className="sidebar-section">
+              <div className="sidebar-section-title">Étudiants</div>
+              <NavLink to="/admin/students" className={link}>Liste</NavLink>
+              {role === 'gestionnaire' && (
+                <NavLink to="/admin/students/import" className={link}>Importer</NavLink>
+              )}
+            </div>
+          )}
+
           {role === 'entreprise' && (
             <div className="sidebar-section">
               <div className="sidebar-section-title">Mon entreprise</div>

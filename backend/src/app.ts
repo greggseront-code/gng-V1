@@ -3,14 +3,16 @@ import cors from 'cors';
 import { getDb } from './db/db.connection';
 import { authContextMiddleware } from './middlewares/auth-context.middleware';
 import { companiesRouter } from './features/companies/companies.routes';
+import { studentsRouter } from './features/students/students.routes';
 
 export const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '5mb' }));
 app.use(authContextMiddleware);
 
 app.use('/api/companies', companiesRouter);
+app.use('/api/students', studentsRouter);
 
 app.get('/api/health', (_req, res) => {
   const db = getDb();

@@ -303,31 +303,30 @@ La spec dit "chaque utilisateur se connecte à la même application, puis accèd
 - Modify: `backend/src/app.ts`
 - Create: `backend/tests/students-import.test.ts`
 
-- [ ] Écrire les tests couvrant : import réussi (retourne `{imported: N}`), listing après import, ligne invalide (email malformé → 400), idempotence (upsert par email).
-- [ ] Run le test et confirmer qu'il échoue.
-- [ ] Définir `StudentInput` (`first_name`, `last_name`, `email`, `promotion?`) et `Student` (avec `id`, `created_at`). La colonne `promotion` est optionnelle (ex. "2025", "BUT3") — elle permet de filtrer les étudiants par année par la suite. Le schéma CSV attendu est donc : `first_name,last_name,email,promotion` (la colonne `promotion` peut être absente ou vide). Ajouter la colonne `promotion TEXT` à la table `students` dans le schéma SQL.
-- [ ] Valider le payload avec Zod : tableau de `StudentInput`, chaque email doit être valide, `promotion` est une chaîne optionnelle.
-- [ ] Implémenter `upsertStudents` : `INSERT ... ON CONFLICT(email) DO UPDATE SET` dans une transaction.
-- [ ] Implémenter `GET /api/students` qui retourne la liste triée par nom. Accessible sans auth (nécessaire pour la page de sélection de rôle).
-- [ ] Implémenter `POST /api/students/import` qui accepte un tableau JSON de lignes.
-- [ ] Protéger les routes students avec les helpers de Task 4c :
+- [x] Écrire les tests couvrant : import réussi (retourne `{imported: N}`), listing après import, ligne invalide (email malformé → 400), idempotence (upsert par email), accès lecteur/etudiant refusé (403).
+- [x] Run le test et confirmer qu'il échoue.
+- [x] Définir `StudentInput` (`matricule?`, `first_name`, `last_name`, `email`, `date_naissance?`) et `Student`. Format réel : colonnes Excel `Matricule, Nom, Prénom, Email, Date-Naissance` (pas de colonne promotion dans le fichier). Schéma SQL mis à jour avec `matricule TEXT UNIQUE` et `date_naissance TEXT`.
+- [x] Valider le payload avec Zod : tableau de `StudentInput`, chaque email doit être valide.
+- [x] Implémenter `upsertStudents` : `INSERT ... ON CONFLICT(email) DO UPDATE SET` dans une transaction.
+- [x] Implémenter `GET /api/students` qui retourne la liste triée par nom. Accessible sans auth (nécessaire pour la page de sélection de rôle).
+- [x] Implémenter `POST /api/students/import` qui accepte un tableau JSON de lignes.
+- [x] Protéger les routes students avec les helpers de Task 4c :
   - `GET /api/students` : public (pas d'auth requise)
   - `POST /api/students/import` : `gestionnaire` uniquement — 403 pour tout autre rôle, conforme à la spec
   - `GET /api/students/:id/applications` (ajouté en Task 9) : `gestionnaire`, `lecteur`, `etudiant` (uniquement ses propres candidatures via `x-entity-id`)
-- [ ] Ajouter dans `access-control.test.ts` : `lecteur` reçoit 403 sur `POST /api/students/import` ; `gestionnaire` importe avec succès.
-- [ ] Brancher le router dans `app.ts` sous `/api/students`.
-- [ ] Run: `cd backend && npm test -- --run tests/students-import.test.ts` — 4 tests PASS.
-- [ ] Run: `cd backend && npm test` — aucune régression.
+- [x] Brancher le router dans `app.ts` sous `/api/students`.
+- [x] Run: `cd backend && npm test -- --run tests/students-import.test.ts` — 7 tests PASS.
+- [x] Run: `cd backend && npm test` — aucune régression (42 tests).
 - [ ] Commit.
 
 **Verification:**
 - Run: `cd backend && npm test -- --run tests/students-import.test.ts`
-- Expected: import, listing, validation, and idempotency all pass
+- Expected: import, listing, validation, idempotency et accès refusé PASS
 
 **Human observables:**
-- `POST /api/students/import` avec `[{"first_name":"Alice","last_name":"Martin","email":"alice@ecole.fr"}]` retourne `{"imported":1}`
-- `GET /api/students` retourne la liste
-- Renvoyer le même payload ne crée pas de doublon
+- `POST /api/students/import` avec `[{"matricule":"202502681","last_name":"Dupont","first_name":"Alice","email":"alice@student.vinci.be","date_naissance":"2006-06-20"}]` retourne `{"imported":1}`
+- `GET /api/students` retourne la liste triée par nom
+- Renvoyer le même payload met à jour l'étudiant sans créer de doublon
 
 ---
 
@@ -341,13 +340,13 @@ La spec dit "chaque utilisateur se connecte à la même application, puis accèd
 - Modify: `frontend/src/app/app.tsx`
 - Modify: `frontend/src/components/app-layout.tsx`
 
-- [ ] Écrire `students.types.ts` avec l'interface `Student` (incluant `promotion: string | null`).
-- [ ] Écrire `students.api.ts` avec `importStudents(rows)` (POST JSON) et `listStudents()` (GET).
-- [ ] Écrire `StudentsImportPage` : sélecteur de fichier CSV, parser côté client (colonnes attendues : `first_name,last_name,email,promotion` — `promotion` est optionnelle), envoi via `importStudents`, affichage du résultat ou de l'erreur, lien vers la liste après import réussi.
-- [ ] Écrire `StudentsPage` : liste tous les étudiants (prénom, nom, email) récupérés via `listStudents()`.
-- [ ] Ajouter les routes `/admin/students/import` et `/admin/students` dans `app.tsx`.
-- [ ] Ajouter les liens "Import étudiants" et "Liste étudiants" dans `AppLayout`, visibles seulement pour `gestionnaire` et `lecteur`, avec l'action d'import réservée au `gestionnaire`.
-- [ ] Run: `cd frontend && npm run build` — pas d'erreur.
+- [x] Écrire `students.types.ts` avec l'interface `Student` (matricule, first_name, last_name, email, date_naissance, created_at).
+- [x] Écrire `students.api.ts` avec `importStudents(rows)` (POST JSON) et `listStudents()` (GET).
+- [x] Écrire `StudentsImportPage` : sélecteur de fichier `.xlsx` (format réel), parser client-side via SheetJS (import dynamique pour code-splitting), colonnes `Matricule / Nom / Prénom / Email / Date-Naissance`, aperçu tabulaire avant envoi, affichage du résultat ou de l'erreur, lien vers la liste après import réussi.
+- [x] Écrire `StudentsPage` : liste tous les étudiants (matricule, nom, prénom, email, date de naissance) avec recherche et compteur, bouton import visible pour gestionnaire.
+- [x] Ajouter les routes `/admin/students/import` et `/admin/students` dans `app.tsx`. Route import protégée par `RequireWrite`.
+- [x] Ajouter les liens "Liste" et "Importer" dans `AppLayout` sous section "Étudiants", visibles pour `gestionnaire` et `lecteur`, action d'import réservée au `gestionnaire`.
+- [x] Run: `cd frontend && npm run build` — pas d'erreur.
 - [ ] Tester l'import puis la consultation de la liste dans le navigateur.
 - [ ] Commit.
 
@@ -355,10 +354,10 @@ La spec dit "chaque utilisateur se connecte à la même application, puis accèd
 - Run: `cd frontend && npm run build`
 
 **Human observables:**
-- `http://localhost:5173/admin/students/import` affiche un sélecteur de fichier
-- Sélectionner un CSV valide affiche "N étudiant(s) importé(s)."
-- Un CSV malformé affiche un message d'erreur rouge
-- `http://localhost:5173/admin/students` liste les étudiants importés
+- `http://localhost:5173/admin/students/import` affiche un sélecteur de fichier `.xlsx` avec aperçu avant import
+- Sélectionner le fichier Excel affiche les N étudiants détectés ; cliquer "Importer" envoie les données
+- Un fichier malformé affiche un message d'erreur rouge
+- `http://localhost:5173/admin/students` liste les étudiants importés avec recherche
 
 ---
 
