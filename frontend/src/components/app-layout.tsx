@@ -57,7 +57,15 @@ export function AppLayout() {
           {role === 'entreprise' && (
             <div className="sidebar-section">
               <div className="sidebar-section-title">Mon entreprise</div>
+              <NavLink to="/company/dashboard" className={link}>Espace entreprise</NavLink>
               <NavLink to="/companies" className={link}>Répertoire</NavLink>
+            </div>
+          )}
+
+          {role === 'etudiant' && (
+            <div className="sidebar-section">
+              <div className="sidebar-section-title">Mon espace</div>
+              <NavLink to="/student/applications" className={link}>Mes candidatures</NavLink>
             </div>
           )}
 

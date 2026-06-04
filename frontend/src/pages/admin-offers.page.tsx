@@ -142,9 +142,14 @@ export function AdminOffersPage() {
                 <div className="card-body">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ marginBottom: '0.25rem' }}>
+                      <div style={{ marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                         <span className="text-muted" style={{ fontSize: '0.8125rem' }}>{companyName}</span>
-                        {' — '}
+                        {offer.source_type === 'student' && (
+                          <span className="badge badge-warning" style={{ fontSize: '0.75rem' }}>Étudiant</span>
+                        )}
+                        {offer.source_type === 'company' && (
+                          <span className="badge badge-primary" style={{ fontSize: '0.75rem' }}>Entreprise</span>
+                        )}
                         <Link to={`/offers/${offer.id}`} style={{ fontSize: '0.8125rem' }}>Voir le détail</Link>
                       </div>
                       <p style={{ marginBottom: '0.5rem' }}>

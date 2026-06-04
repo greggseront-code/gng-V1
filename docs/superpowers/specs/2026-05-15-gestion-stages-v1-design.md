@@ -60,7 +60,7 @@ L'espace pedagogique dispose de deux niveaux de droits:
 
 L'espace pedagogique doit permettre:
 
-- la vue des offres a traiter
+- la vue des offres a traiter, avec indication de l'origine de chaque offre (deposee par une entreprise ou proposee par un etudiant)
 - la consultation globale des entreprises, contacts, offres et candidatures
 - la correction des donnees de reference
 - la supervision de la publication des offres

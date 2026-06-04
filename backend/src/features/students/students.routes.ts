@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireRole } from '../../middlewares/authorization.middleware';
 import { importStudents, listStudents } from './students.service';
 import { StudentsImportSchema } from './students.schemas';
+import { getApplicationsByStudent } from '../applications/applications.service';
 
 export const studentsRouter = Router();
 
@@ -21,5 +22,21 @@ studentsRouter.post(
       return;
     }
     res.json({ imported: importStudents(result.data) });
+  },
+);
+
+// GET /api/students/:studentId/applications — gestionnaire, lecteur, etudiant (etudiant: own only)
+studentsRouter.get(
+  '/:studentId/applications',
+  requireRole('gestionnaire', 'lecteur', 'etudiant'),
+  (req, res) => {
+    const studentId = Number(req.params.studentId);
+
+    if (req.auth.role === 'etudiant' && req.auth.entityId !== studentId) {
+      res.status(403).json({ error: 'Accès refusé' });
+      return;
+    }
+
+    res.json(getApplicationsByStudent(studentId));
   },
 );

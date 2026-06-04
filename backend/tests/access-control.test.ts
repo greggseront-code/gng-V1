@@ -201,3 +201,71 @@ describe('access control — offers routes', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('access control — applications routes', () => {
+  let db: Database;
+  let companyId: number;
+  let otherCompanyId: number;
+  let contactId: number;
+  let offerId: number;
+  let studentId: number;
+  let applicationId: number;
+
+  beforeEach(async () => {
+    db = createTestDb();
+    setDb(db);
+
+    companyId = insertCompany(db, { name: 'Acme', general_email: 'acme@acme.com' }).id;
+    otherCompanyId = insertCompany(db, { name: 'Other', general_email: 'other@other.com' }).id;
+    contactId = insertContact(db, companyId, {
+      first_name: 'Jean', last_name: 'Dupont', email: 'j@d.com', roles: ['maitre_de_stage'],
+    }).id;
+
+    // Create and validate an offer belonging to companyId
+    const offerRes = await request(app)
+      .post('/api/offers')
+      .set('x-role', 'gestionnaire')
+      .send({ company_id: companyId, priority_contact_id: contactId, contact_ids: [contactId], description: 'Test', remote_allowed: false });
+    offerId = offerRes.body.id;
+    await request(app).post(`/api/offers/${offerId}/validate`).set('x-role', 'gestionnaire');
+
+    // Insert a student and have them apply
+    db.prepare('INSERT INTO students (first_name, last_name, email) VALUES (?,?,?)').run('Alice', 'Martin', 'alice@ac.be');
+    studentId = (db.prepare('SELECT id FROM students WHERE email=?').get('alice@ac.be') as { id: number }).id;
+
+    const applyRes = await request(app)
+      .post(`/api/offers/${offerId}/applications`)
+      .set('x-role', 'etudiant')
+      .set('x-entity-id', String(studentId));
+    applicationId = applyRes.body.id;
+  });
+
+  afterEach(() => db.close());
+
+  it('entreprise reçoit 403 sur GET /api/offers/:offerId/applications d\'une offre qui ne lui appartient pas', async () => {
+    const res = await request(app)
+      .get(`/api/offers/${offerId}/applications`)
+      .set('x-role', 'entreprise')
+      .set('x-entity-id', String(otherCompanyId));
+    expect(res.status).toBe(403);
+  });
+
+  it('etudiant reçoit 403 sur POST /api/offers/:offerId/select-candidate', async () => {
+    const res = await request(app)
+      .post(`/api/offers/${offerId}/select-candidate`)
+      .set('x-role', 'etudiant')
+      .set('x-entity-id', String(studentId))
+      .send({ application_id: applicationId });
+    expect(res.status).toBe(403);
+  });
+
+  it('entreprise peut POST select-candidate sur sa propre offre et celle-ci passe à prise', async () => {
+    const res = await request(app)
+      .post(`/api/offers/${offerId}/select-candidate`)
+      .set('x-role', 'entreprise')
+      .set('x-entity-id', String(companyId))
+      .send({ application_id: applicationId });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('prise');
+  });
+});

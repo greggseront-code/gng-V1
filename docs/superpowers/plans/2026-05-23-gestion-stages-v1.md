@@ -436,7 +436,7 @@ La spec dit "chaque utilisateur se connecte à la même application, puis accèd
 - [x] Écrire `OfferForm` : formulaire partagé avec tous les champs de l'offre — description (obligatoire), lieu, technologies, objectifs, télétravail (checkbox + pourcentage conditionnel), remarques, et un champ d'upload de fichier optionnel (pièce jointe). Prend `companyId`, `contactId`, `initialValues?`, `onSubmit` et `submitLabel` en props.
 - [x] Écrire `SubmitOfferPage` : page accessible au rôle entreprise. Récupère `company_id` et la liste des contacts depuis le contexte de rôle (`entityId`), affiche la liste des contacts pour en choisir un comme prioritaire, puis `OfferForm`. Si `offerId` est présent dans l'URL (route `/offers/:id/edit`), charge l'offre existante et prépopule le formulaire (`initialValues`).
 - [x] Écrire `StudentProposalPage` : page accessible au rôle étudiant, en trois étapes. Étape 1 — recherche d'entreprise : champ de recherche appelant `listCompanies(search)` ; si l'entreprise est trouvée, l'étudiant la sélectionne et passe à l'étape 2. Étape 2 — sélection du contact : liste les contacts de l'entreprise choisie, l'étudiant en choisit un comme contact prioritaire. Étape 3 — formulaire de proposition : `OfferForm` avec `submitted_by_student_id = entityId` (contexte de rôle). Si l'entreprise n'est pas trouvée à l'étape 1, un bouton "Suggérer une nouvelle entreprise" ouvre un formulaire inline permettant de saisir le nom, l'email général, l'adresse et les informations d'un premier contact ; la soumission appelle `POST /api/companies` pour créer l'entreprise et son contact, puis passe directement à l'étape 3 avec l'entreprise nouvellement créée. Le gestionnaire verra cette entreprise dans la liste des entreprises récemment créées et pourra la corriger si nécessaire.
-- [x] Écrire `AdminOffersPage` : liste toutes les offres avec badge de statut ; pour les offres `soumise`, affiche les boutons "Valider", "Refuser" et "Indisponible" ; pour chaque offre, affiche le nom de l'entreprise rattachée avec un bouton "Corriger l'entreprise" qui ouvre une recherche permettant de changer le `company_id` de l'offre (appel à `PATCH /api/offers/:id/company`).
+- [x] Écrire `AdminOffersPage` : liste toutes les offres avec badge de statut ; pour les offres `soumise`, affiche les boutons "Valider", "Refuser" et "Indisponible" ; pour chaque offre, affiche le nom de l'entreprise rattachée avec un bouton "Corriger l'entreprise" qui ouvre une recherche permettant de changer le `company_id` de l'offre (appel à `PATCH /api/offers/:id/company`) ; affiche un badge d'origine ("Étudiant" ou "Entreprise") basé sur `source_type` pour permettre à l'équipe pédagogique d'identifier rapidement la provenance de chaque offre.
 - [x] Veiller à ce que les pages frontend n'affichent jamais de données hors périmètre du rôle courant : `lecteur` sans boutons d'action, `entreprise` sur ses seules offres, `etudiant` sur les offres publiées plus ses propres propositions.
 - [x] Ajouter les routes `/offers`, `/offers/:id`, `/offers/new`, `/offers/:id/edit`, `/offers/proposal`, `/admin/offers` dans `app.tsx`.
 - [x] Ajouter les liens correspondants dans `AppLayout` selon le rôle (Task 4b).
@@ -470,22 +470,22 @@ La spec dit "chaque utilisateur se connecte à la même application, puis accèd
 - Modify: `backend/src/app.ts`
 - Create: `backend/tests/applications.test.ts`
 
-- [ ] Écrire les tests couvrant : création d'une candidature (201), doublon (409), listing des candidats côté entreprise et côté pédagogique, listing des candidatures d'un étudiant connecté, sélection d'un candidat (offre passe à `prise`).
-- [ ] Run le test et confirmer qu'il échoue.
-- [ ] Définir `Application` avec `id`, `offer_id`, `student_id`, `selected`, `created_at`.
-- [ ] Valider les payloads : `student_id` pour postuler, `application_id` pour sélectionner.
-- [ ] Implémenter `insertApplication` (catch `UNIQUE` constraint → 409), `listApplications(offerId)`, `findApplicationById`.
-- [ ] Implémenter `selectCandidate` : marque `selected = 1` sur la candidature, puis appelle `markOfferTaken` pour passer l'offre à `prise`.
-- [ ] Exposer : `POST /api/offers/:offerId/applications`, `GET /api/offers/:offerId/applications`, `POST /api/offers/:offerId/select-candidate`, `GET /api/students/:studentId/applications`.
-- [ ] Protéger les routes applications avec les helpers de Task 4c selon la matrice suivante :
+- [x] Écrire les tests couvrant : création d'une candidature (201), doublon (409), listing des candidats côté entreprise et côté pédagogique, listing des candidatures d'un étudiant connecté, sélection d'un candidat (offre passe à `prise`).
+- [x] Run le test et confirmer qu'il échoue.
+- [x] Définir `Application` avec `id`, `offer_id`, `student_id`, `selected`, `created_at`.
+- [x] Valider les payloads : `student_id` pour postuler, `application_id` pour sélectionner.
+- [x] Implémenter `insertApplication` (catch `UNIQUE` constraint → 409), `listApplications(offerId)`, `findApplicationById`.
+- [x] Implémenter `selectCandidate` : marque `selected = 1` sur la candidature, puis appelle `markOfferTaken` pour passer l'offre à `prise`.
+- [x] Exposer : `POST /api/offers/:offerId/applications`, `GET /api/offers/:offerId/applications`, `POST /api/offers/:offerId/select-candidate`, `GET /api/students/:studentId/applications`.
+- [x] Protéger les routes applications avec les helpers de Task 4c selon la matrice suivante :
   - `POST /api/offers/:offerId/applications` : `etudiant` uniquement — un étudiant postule pour lui-même (son `x-entity-id` est utilisé comme `student_id`, ignorant le corps si différent)
   - `GET /api/offers/:offerId/applications` : `gestionnaire`, `lecteur`, `entreprise` (uniquement ses propres offres via vérification que l'offre appartient à `x-entity-id`)
   - `POST /api/offers/:offerId/select-candidate` : `entreprise` (uniquement ses propres offres) — conforme à la spec
   - `GET /api/students/:studentId/applications` : `gestionnaire`, `lecteur`, `etudiant` (uniquement ses propres candidatures : 403 si `studentId` ≠ `x-entity-id`)
-- [ ] Ajouter dans `access-control.test.ts` : `entreprise` ne peut pas voir les candidatures d'une offre d'une autre entreprise (403) ; `etudiant` ne peut pas appeler `select-candidate` (403) ; `entreprise` peut retenir un candidat sur sa propre offre.
-- [ ] Brancher dans `app.ts` en utilisant `mergeParams: true` sur le router.
-- [ ] Run: `cd backend && npm test -- --run tests/applications.test.ts` — tous les tests PASS.
-- [ ] Run: `cd backend && npm test` — aucune régression.
+- [x] Ajouter dans `access-control.test.ts` : `entreprise` ne peut pas voir les candidatures d'une offre d'une autre entreprise (403) ; `etudiant` ne peut pas appeler `select-candidate` (403) ; `entreprise` peut retenir un candidat sur sa propre offre.
+- [x] Brancher dans `app.ts` en utilisant `mergeParams: true` sur le router.
+- [x] Run: `cd backend && npm test -- --run tests/applications.test.ts` — tous les tests PASS.
+- [x] Run: `cd backend && npm test` — aucune régression.
 - [ ] Commit.
 
 **Verification:**
@@ -511,15 +511,15 @@ La spec dit "chaque utilisateur se connecte à la même application, puis accèd
 - Modify: `frontend/src/app/app.tsx`
 - Modify: `frontend/src/components/app-layout.tsx`
 
-- [ ] Écrire `applications.api.ts` avec : `applyToOffer(offerId, studentId)`, `listApplications(offerId)`, `listStudentApplications(studentId)`, `selectCandidate(offerId, applicationId)`.
-- [ ] Modifier `OfferDetailsPage` : ajouter un bouton "Postuler" visible uniquement sur les offres `validee_et_visible` et uniquement pour le rôle `etudiant`; utiliser `entityId` du contexte de rôle comme `student_id`; afficher confirmation ou erreur.
-- [ ] Écrire `CompanyDashboardPage` : affiche le profil de l'entreprise (nom, email général, adresse) ; permet de modifier ce profil via `PATCH /api/companies/:id` ; liste ses contacts (nom, email, rôles) avec formulaire d'ajout de contact depuis l'espace entreprise ; liste ses offres avec statut ; pour chaque offre, affiche les candidats avec leur nom et un bouton "Retenir" sur les offres `validee_et_visible`. Toutes les données proviennent d'endpoints déjà filtrés côté backend selon `entityId`.
-- [ ] Écrire `StudentApplicationsPage` : affiche les candidatures de l'étudiant connecté et ses propositions de stage avec leur statut (`soumise`, `validee_et_visible`, `refusee`, `prise`, `non_disponible`).
-- [ ] Ajouter la route `/company/dashboard` dans `app.tsx`.
-- [ ] Ajouter la route `/student/applications` dans `app.tsx`.
-- [ ] Ajouter le lien "Espace entreprise" dans `AppLayout` (visible uniquement pour le rôle entreprise).
-- [ ] Ajouter le lien "Mes candidatures" dans `AppLayout` (visible uniquement pour le rôle étudiant).
-- [ ] Run: `cd frontend && npm run build` — pas d'erreur.
+- [x] Écrire `applications.api.ts` avec : `applyToOffer(offerId, studentId)`, `listApplications(offerId)`, `listStudentApplications(studentId)`, `selectCandidate(offerId, applicationId)`.
+- [x] Modifier `OfferDetailsPage` : ajouter un bouton "Postuler" visible uniquement sur les offres `validee_et_visible` et uniquement pour le rôle `etudiant`; utiliser `entityId` du contexte de rôle comme `student_id`; afficher confirmation ou erreur.
+- [x] Écrire `CompanyDashboardPage` : affiche le profil de l'entreprise (nom, email général, adresse) ; permet de modifier ce profil via `PATCH /api/companies/:id` ; liste ses contacts (nom, email, rôles) avec formulaire d'ajout de contact depuis l'espace entreprise ; liste ses offres avec statut ; pour chaque offre, affiche les candidats avec leur nom et un bouton "Retenir" sur les offres `validee_et_visible`. Toutes les données proviennent d'endpoints déjà filtrés côté backend selon `entityId`.
+- [x] Écrire `StudentApplicationsPage` : affiche les candidatures de l'étudiant connecté et ses propositions de stage avec leur statut (`soumise`, `validee_et_visible`, `refusee`, `prise`, `non_disponible`).
+- [x] Ajouter la route `/company/dashboard` dans `app.tsx`.
+- [x] Ajouter la route `/student/applications` dans `app.tsx`.
+- [x] Ajouter le lien "Espace entreprise" dans `AppLayout` (visible uniquement pour le rôle entreprise).
+- [x] Ajouter le lien "Mes candidatures" dans `AppLayout` (visible uniquement pour le rôle étudiant).
+- [x] Run: `cd frontend && npm run build` — pas d'erreur.
 - [ ] Tester le cycle complet : postuler en tant qu'étudiant, voir la candidature dans le dashboard entreprise, retenir le candidat.
 - [ ] Commit.
 

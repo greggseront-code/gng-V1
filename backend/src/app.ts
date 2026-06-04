@@ -5,6 +5,7 @@ import { authContextMiddleware } from './middlewares/auth-context.middleware';
 import { companiesRouter } from './features/companies/companies.routes';
 import { studentsRouter } from './features/students/students.routes';
 import { offersRouter } from './features/offers/offers.routes';
+import { applicationsRouter, selectCandidateRouter } from './features/applications/applications.routes';
 
 export const app = express();
 
@@ -15,6 +16,8 @@ app.use(authContextMiddleware);
 app.use('/api/companies', companiesRouter);
 app.use('/api/students', studentsRouter);
 app.use('/api/offers', offersRouter);
+app.use('/api/offers/:offerId/applications', applicationsRouter);
+app.use('/api/offers/:offerId/select-candidate', selectCandidateRouter);
 
 app.get('/api/health', (_req, res) => {
   const db = getDb();

@@ -4,13 +4,16 @@ import { getOffer, validateOffer, rejectOffer, markUnavailable } from '../featur
 import type { Offer } from '../features/offers/offers.types';
 import { StatusBadge } from '../components/status-badge';
 import { useRole } from '../context/role-context';
+import { applyToOffer } from '../features/applications/applications.api';
 
 export function OfferDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const { role } = useRole();
+  const { role, entityId } = useRole();
   const [offer, setOffer] = useState<Offer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [applied, setApplied] = useState(false);
+  const [applySuccess, setApplySuccess] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -38,6 +41,19 @@ export function OfferDetailsPage() {
   const o = offer;
   const canEdit = role === 'entreprise' || role === 'gestionnaire';
   const canManage = role === 'gestionnaire' && o.status === 'soumise';
+  const canApply = role === 'etudiant' && o.status === 'validee_et_visible' && entityId != null;
+
+  async function handleApply() {
+    if (entityId == null) return;
+    setActionError(null);
+    try {
+      await applyToOffer(o.id, entityId!);
+      setApplied(true);
+      setApplySuccess(true);
+    } catch (err) {
+      setActionError(String(err));
+    }
+  }
 
   async function handleAction(action: 'validate' | 'reject' | 'unavailable') {
     setActionError(null);
@@ -63,6 +79,15 @@ export function OfferDetailsPage() {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <StatusBadge status={offer.status} />
+          {canApply && (
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={handleApply}
+              disabled={applied}
+            >
+              {applied ? 'Candidature envoyée' : 'Postuler'}
+            </button>
+          )}
           {canManage && (
             <>
               <button className="btn btn-primary btn-sm" onClick={() => handleAction('validate')}>Valider</button>
@@ -78,6 +103,9 @@ export function OfferDetailsPage() {
         </div>
       </div>
 
+      {applySuccess && (
+        <div className="alert alert-success">Votre candidature a bien été envoyée.</div>
+      )}
       {actionError && (
         <div className="alert alert-error">{actionError}</div>
       )}
