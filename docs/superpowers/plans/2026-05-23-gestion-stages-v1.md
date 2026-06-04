@@ -547,15 +547,15 @@ La spec demande un tableau de bord gestionnaire orienté supervision, ainsi que 
 - Modify: `frontend/src/features/offers/offers.api.ts`
 - Modify: `frontend/src/features/companies/companies.api.ts`
 
-- [ ] Modifier `HomePage` pour qu'elle devienne conditionnelle au rôle :
+- [x] Modifier `HomePage` pour qu'elle devienne conditionnelle au rôle :
   - `gestionnaire` : dashboard avec offres `soumise`, entreprises récemment créées, entreprises à risque de doublon, lien vers import CSV, lien vers les offres à clôturer
   - `lecteur` : dashboard de consultation avec accès rapide aux entreprises, offres, étudiants, candidatures
   - autres rôles : page d'accueil simple orientée navigation
-- [ ] Ajouter une recherche globale V1 légère sur le dashboard gestionnaire : un champ unique qui lance simultanément une recherche d'entreprises et d'offres et affiche les résultats regroupés. La recherche globale V1 est explicitement limitée à ces deux objets.
-- [ ] Écrire `AdminApplicationsPage` : vue de consultation des candidatures pour `gestionnaire` et `lecteur`, avec regroupement par offre et affichage du nom étudiant, du statut de sélection et de l'entreprise.
-- [ ] Ajouter la route `/admin/applications` dans `app.tsx`.
-- [ ] Ajouter les liens "Candidatures" et, pour `gestionnaire`, les raccourcis dashboard dans `AppLayout`.
-- [ ] Run: `cd frontend && npm run build` — pas d'erreur.
+- [x] Ajouter une recherche globale V1 légère sur le dashboard gestionnaire : un champ unique qui lance simultanément une recherche d'entreprises et d'offres et affiche les résultats regroupés. La recherche globale V1 est explicitement limitée à ces deux objets.
+- [x] Écrire `AdminApplicationsPage` : vue de consultation des candidatures pour `gestionnaire` et `lecteur`, avec regroupement par offre et affichage du nom étudiant, du statut de sélection et de l'entreprise.
+- [x] Ajouter la route `/admin/applications` dans `app.tsx`.
+- [x] Ajouter les liens "Candidatures" et, pour `gestionnaire`, les raccourcis dashboard dans `AppLayout`.
+- [x] Run: `cd frontend && npm run build` — pas d'erreur.
 - [ ] Vérifier dans le navigateur : le dashboard gestionnaire montre bien les zones attendues ; le lecteur n'a aucun bouton d'action d'écriture.
 - [ ] Commit.
 
