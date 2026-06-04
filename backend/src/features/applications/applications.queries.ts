@@ -58,6 +58,18 @@ export function findApplicationById(db: Database, id: number): Application | nul
   );
 }
 
+export function findApplicationByStudentAndOffer(
+  db: Database,
+  offerId: number,
+  studentId: number,
+): Application | null {
+  return (
+    (db
+      .prepare('SELECT * FROM applications WHERE offer_id = ? AND student_id = ?')
+      .get(offerId, studentId) as Application | undefined) ?? null
+  );
+}
+
 export function selectCandidateAndCloseOffer(
   db: Database,
   applicationId: number,

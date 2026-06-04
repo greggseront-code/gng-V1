@@ -223,7 +223,9 @@ selon que l'offre vient d'une entreprise ou d'un etudiant.
 - seuls les `gestionnaires` peuvent corriger les entreprises et contacts
 - les `lecteurs` ont un acces en lecture seule
 - les `etudiants` ne voient que les offres validees et visibles, plus leurs
-  propres interactions, ainsi que le referentiel d'entreprises
+  propres propositions, plus les offres auxquelles ils ont postule (y compris
+  si l'offre est passee a l'etat `prise`), a l'exclusion des offres
+  `non_disponible`, ainsi que le referentiel d'entreprises
 - les `entreprises` ne voient que leurs propres donnees
 
 ### Publication

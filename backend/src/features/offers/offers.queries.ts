@@ -61,12 +61,20 @@ export function listOffers(db: Database, auth: AuthContext, search?: string): Of
   }
 
   if (role === 'etudiant' && entityId != null) {
+    const joinSearchClause = search
+      ? `AND (LOWER(o.description) LIKE @search OR LOWER(o.technologies) LIKE @search OR LOWER(o.location) LIKE @search)`
+      : '';
     return db
       .prepare(
-        `SELECT * FROM offers
-         WHERE (status = 'validee_et_visible' OR submitted_by_student_id = @entityId)
-         ${searchClause}
-         ORDER BY created_at DESC`,
+        `SELECT DISTINCT o.* FROM offers o
+         LEFT JOIN applications a ON a.offer_id = o.id AND a.student_id = @entityId
+         WHERE (
+           o.status = 'validee_et_visible'
+           OR o.submitted_by_student_id = @entityId
+           OR (a.id IS NOT NULL AND o.status != 'non_disponible')
+         )
+         ${joinSearchClause}
+         ORDER BY o.created_at DESC`,
       )
       .all({ entityId, ...(sp ? { search: sp } : {}) }) as Offer[];
   }

@@ -13,6 +13,7 @@ import {
   changeOfferCompany,
   attachFile,
 } from './offers.service';
+import { getApplicationByStudentAndOffer } from '../applications/applications.service';
 import type { Offer } from './offers.types';
 
 export const offersRouter = Router();
@@ -50,7 +51,16 @@ offersRouter.post('/', requireRole('gestionnaire', 'etudiant', 'entreprise'), (r
 offersRouter.get('/:id', (req, res) => {
   const offer = getOfferById(Number(req.params.id));
   if (!offer) { res.status(404).json({ error: 'Offre non trouvée' }); return; }
-  if (!isVisible(offer, req.auth)) { res.status(403).json({ error: 'Accès refusé' }); return; }
+  if (!isVisible(offer, req.auth)) {
+    // Etudiant who applied can still see the offer, unless it's non_disponible
+    const { role, entityId } = req.auth;
+    if (role === 'etudiant' && entityId != null && offer.status !== 'non_disponible') {
+      const app = getApplicationByStudentAndOffer(offer.id, entityId);
+      if (!app) { res.status(403).json({ error: 'Accès refusé' }); return; }
+    } else {
+      res.status(403).json({ error: 'Accès refusé' }); return;
+    }
+  }
   res.json(offer);
 });
 

@@ -6,6 +6,7 @@ import {
   listApplicationsByOffer as listByOfferQuery,
   listApplicationsByStudent as listByStudentQuery,
   findApplicationById as findByIdQuery,
+  findApplicationByStudentAndOffer as findByStudentAndOfferQuery,
   selectCandidateAndCloseOffer as selectCandidateQuery,
 } from './applications.queries';
 
@@ -29,6 +30,10 @@ export function getApplicationsByStudent(studentId: number): Application[] {
 
 export function getApplicationById(id: number): Application | null {
   return findByIdQuery(getDb(), id);
+}
+
+export function getApplicationByStudentAndOffer(offerId: number, studentId: number): Application | null {
+  return findByStudentAndOfferQuery(getDb(), offerId, studentId);
 }
 
 export function selectCandidate(applicationId: number, offerId: number): Offer {
