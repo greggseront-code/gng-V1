@@ -25,8 +25,8 @@ export function AppLayout() {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="sidebar-brand-name">gnu-gesta</div>
-          <div className="sidebar-brand-sub">Gestion des stages</div>
+          <div className="sidebar-brand-name">GNG</div>
+          <div className="sidebar-brand-sub">GNG is not Gesta</div>
         </div>
 
         <nav className="sidebar-nav">
