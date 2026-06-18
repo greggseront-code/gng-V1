@@ -33,3 +33,31 @@ cd backend && npm test
 ```bash
 cd frontend && npm run build
 ```
+
+## Sauvegarde et restauration de la base de données
+
+Les données vivent dans un unique fichier SQLite : `backend/data/gesta.db`. Ce
+fichier (et tout `backend/data/`) est exclu de git — une sauvegarde doit donc
+être copiée ailleurs (clé USB, autre disque, stockage cloud...) pour survivre
+à une perte du serveur ou à une réinstallation du dépôt.
+
+**Sauvegarder :**
+```bash
+cd backend
+npm run db:backup
+```
+Crée un fichier horodaté dans `backend/data/backups/` (ex.
+`gesta-2026-06-16T10-00-00.db`). Un chemin personnalisé peut être fourni :
+```bash
+npm run db:backup -- /chemin/vers/ma-sauvegarde.db
+```
+
+**Restaurer :**
+```bash
+cd backend
+npm run db:restore -- data/backups/gesta-2026-06-16T10-00-00.db
+```
+⚠️ Arrêtez le serveur backend avant de restaurer : la restauration remplace
+directement `backend/data/gesta.db`, et un serveur en cours d'exécution
+garderait une connexion ouverte sur l'ancien fichier jusqu'à son redémarrage.
+Relancez `npm run dev` une fois la restauration terminée.
