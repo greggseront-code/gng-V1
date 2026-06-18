@@ -22,7 +22,7 @@ export function getDb(): Database.Database {
 export function createTestDb(): Database.Database {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
-  runMigrations(db);
+  runMigrations(db, { seedDemo: false });
   return db;
 }
 
